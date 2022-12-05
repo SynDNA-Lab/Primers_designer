@@ -1,0 +1,60 @@
+# General:
+jobname: NeoChrIII
+chromosome: "03"
+target: "input/neochr_URA3.gb"
+subject: # genbank/fasta file of genome for which to check against
+output_path: "output" #maybe we can get rid of this?
+
+# Paths:
+home: /home/Primer/PrimerDesigner
+primer3_path: /home/Primer/PrimerDesigner/primer3/src/primer3_core
+bowtie_path: /home/Primer/PrimerDesigner/bowtie/index
+
+# Primer Settings:
+max_loci_offtargets: 3
+max_pcr_offtarget: 10_000 # cutoff offtarget amplicon size
+sponge_value: 5 # number of maximal offtarget binding sites across loci 
+
+# Filenames: # Note: Improve filenames
+ot_loci_check: rmvduplic.csv
+ot_total_check: rmvchr.csv #maybe these are switched arround
+p3_candidates: p3_result.txt
+primer_first_iteration: primercheck.fasta
+primer_second_iteration: primercheck1.fasta
+p3_settings: settings
+report: report.txt # Use logging to report every step to a file for the process ? 
+output: final_out.csv
+
+# Primer3 general settings:
+primer3_settings:
+  PRIMER_PRODUCT_SIZE_RANGE: 300-500
+  PRIMER_PRODUCT_OPT_SIZE: 400
+  PRIMER_OPT_SIZE: 20
+  PRIMER_MIN_SIZE: 18
+  PRIMER_MAX_SIZE: 30
+  PRIMER_MIN_TM: 58
+  PRIMER_MAX_TM: 62
+  PRIMER_OPT_TM: 60
+  PRIMER_PAIR_MAX_DIFF_TM: 1
+  PRIMER_GC_CLAMP: 1
+
+  # Primer3 advanced settings:
+  PRIMER_PICK_LEFT_PRIMER: 1
+  PRIMER_PICK_INTERNAL_OLIGO: 0
+  PRIMER_PICK_RIGHT_PRIMER: 1
+  PRIMER_SECONDARY_STRUCTURE_ALIGNMENT: 0
+  PRIMER_NUM_RETURN: 50
+  PRIMER_MAX_HAIRPIN_TH: 47.0
+  PRIMER_INTERNAL_MAX_HAIRPIN_TH: 47.0
+  PRIMER_MAX_END_STABILITY: 100.0
+  PRIMER_MIN_LEFT_THREE_PRIME_DISTANCE: -1
+  PRIMER_MIN_RIGHT_THREE_PRIME_DISTANCE: -1
+  PRIMER_EXPLAIN_FLAG: 1
+  PRIMER_FIRST_BASE_INDEX: 0
+  PRIMER_MAX_TEMPLATE_MISPRIMING: -1.00
+  PRIMER_MAX_TEMPLATE_MISPRIMING_TH: -1.00
+  PRIMER_PAIR_MAX_TEMPLATE_MISPRIMING: -1.00
+  PRIMER_PAIR_MAX_TEMPLATE_MISPRIMING_TH: -1.00
+  PRIMER_MASK_KMERLIST_PATH: ../kmer_lists/
+  PRIMER_MASK_KMERLIST_PREFIX: saccharomyces_cerevisiae
+  PRIMER_TM_FORMULA: 1
