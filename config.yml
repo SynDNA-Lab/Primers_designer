@@ -1,3 +1,4 @@
+# Change the config file to match the config.py
 # General:
 jobname: NeoChrIII
 chromosome: "03"

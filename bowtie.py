@@ -1,6 +1,30 @@
 import task
 import config
 from primer import Candidates
+from dataclasses import dataclass, field
+
+
+
+@dataclass
+class BowtieInterface:
+    
+    def create_index(ref_file: str, org_name:str) -> None:
+        pass
+
+    def writer_fasta(self) -> None:
+        pass
+    
+    def run_bowtie(self) -> None:
+        pass
+
+    def parse(self) -> None:
+        pass
+
+
+@dataclass
+class BowtieResult:
+    pass
+
 
 
 

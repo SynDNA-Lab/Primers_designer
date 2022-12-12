@@ -1,4 +1,3 @@
-# NOTE: This file is a fucking mess, clean up the code
 import os
 import shutil
 from itertools import groupby

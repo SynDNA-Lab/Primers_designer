@@ -22,12 +22,7 @@ def exists(filepath:str) -> None:
         sys.exit()
 
 
-if __name__ == "__main__":
-    # Parser
-    parser = argparse.ArgumentParser(description="PrimerDesigner - An Automtic Amplicon Primer Designer")
-    parser.add_argument("-c", "--config", required=True, type=str, help="Path to the config file (YAML)")
-    args = parser.parse_args()
-
+def main(args:argparse.Namespace) -> None:
     exists(args.config)
     config.load(args.config)
 
@@ -38,4 +33,13 @@ if __name__ == "__main__":
     primer3.run(result_path="primer3_result.txt")
     primer3.parse(result_path="primer3_result.txt")
     primer3.generate_fasta()
-    offtarget.filter() #not complete
+    offtarget.filter() 
+
+
+if __name__ == "__main__":
+    # Parser
+    parser = argparse.ArgumentParser(description="qTagGer - An Automtic Amplicon Primer Designer")
+    parser.add_argument("-c", "--config", required=True, type=str, help="Path to the config file (YAML)")
+    args = parser.parse_args()
+
+    
