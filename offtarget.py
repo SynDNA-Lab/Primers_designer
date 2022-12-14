@@ -16,8 +16,16 @@ class OfftargetChecker:
     offtarget_ids: list[int] = field(init=False)
 
 
-    def __init__(self) -> None:
-        pass
+    def __post_init__(self) -> None:
+        delete_buffer = []
+        delete_buffer.extend(self.get_sponges(self.bowtie_target.result))
+        delete_buffer.extend(self.get_sponges(self.bowtie_genome.result))
+
+        delete_buffer.extend(self.filter_offtarget(self.bowtie_target.result))
+        delete_buffer.extend(self.filter_offtarget(self.bowtie_genome.result))
+        
+        self.offtarget_ids = list(set(delete_buffer))
+        #print(self.offtarget_ids)
 
 
     def get_sponges(self, data_frame:pd.DataFrame) -> list[str]:
@@ -30,7 +38,7 @@ class OfftargetChecker:
         grouped = data_frame.groupby(["id", "reference"])
         df_filtered = grouped.filter(lambda x: len(x)>=2)
         return_list = []
-        for name, group in df_filtered.groupby(["id", "reference"]):
+        for _, group in df_filtered.groupby(["id", "reference"]):
             if len(group.strand.unique())<2:
                 continue
             fwd = group[group.strand=="-"].start.unique()

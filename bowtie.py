@@ -1,20 +1,23 @@
-import config
 import pandas as pd 
 from dataclasses import dataclass, field
 from subprocess import Popen, PIPE
 
+from config import Config
 
+
+
+BASENAME = "target"
 
 @dataclass
 class BowtieResult:
     result_path: str
     result: pd.DataFrame = field(init=False)
 
-    def __init__(self) -> None:
-        self.parse_data(self.result_path)
+    def __post_init__(self) -> None:
+        self.parse_data()
 
 
-    def split_data(lst:list[str], index:int) -> list[str]:
+    def split_data(self, lst:list[str], index:int) -> list[str]:
         return [l.split("_")[index] for l in lst]
 
 
@@ -22,8 +25,8 @@ class BowtieResult:
         df = pd.read_csv(self.result_path, sep="\t", header=None)
         df.columns =  ["name", "strand", "reference", "start", "sequence", "quality", "instances", "mismatch_descriptor"]
         df = df.drop_duplicates()
-        df["id"] = self.split_name(df.name, -2)
-        df["orientation"] = self.split_name(df.name, -1)
+        df["id"] = self.split_data(df.name, -2) #primer name to id
+        df["orientation"] = self.split_data(df.name, -1) #primer name to orientation ({fwd, rev})
         
         self.result = df
 
@@ -31,20 +34,20 @@ class BowtieResult:
 
 @dataclass
 class BowtieInterface:
-    target_path: str
+    config: Config
     output_target: str = field(default="bt_target.csv")
     output_genome: str = field(default="bt_genome.csv")
     result_target: BowtieResult = field(init=False)
     result_genome: BowtieResult = field(init=False)
 
 
-    def __init__(self) -> None:
-        self.create_index(ref_file=, org_name=)
-        self.run_bowtie(input_path=, output_path=)
-        self.run_bowtie(input_path=, output_path=)
-        self.result_target = BowtieResult(result_path=)
-        self.result_genome = BowtieResult(result_path=)
-
+    def __post_init__(self) -> None:
+        self.create_index()
+        self.run_bowtie(index=f"{self.config.bowtie_path}/{BASENAME}", fasta_path="potential_primers.fasta", output_path=self.output_target)
+        self.run_bowtie(index=f"{self.config.bowtie_path}/s_cerevisiae/s_cerevisiae", fasta_path="potential_primers.fasta", output_path=self.output_genome)
+        self.result_target = BowtieResult(result_path=self.output_target)
+        self.result_genome = BowtieResult(result_path=self.output_genome)
+    
 
     def run_command(self, cmd: str) -> None:
         process = Popen(args=cmd, stdout=PIPE, stderr=PIPE, shell=True)
@@ -53,11 +56,16 @@ class BowtieInterface:
             print(stderr.decode("ascii"))
     
 
-    def create_index(self, ref_file: str, org_name:str) -> None:
-        cmd = f"cd {config.homepath}/bowtie/index/ && bowtie-build -f {ref_file} {org_name} && cd {config.homepath}/input/script"
+    def create_index(self) -> None:
+        homepath = self.config.home_path
+        btpath = self.config.bowtie_path
+        targetpath = homepath + "/input/target.fasta" 
+
+        cmd = f"cd {btpath} && bowtie-build -f {targetpath} {BASENAME} && cd {homepath}/input"
+        print(cmd)
         self.run_command(cmd=cmd)
 
 
-    def run_bowtie(self, input_path:str, output_path:str) -> None:
-        cmd = f"bowtie -x {index} -a -f {input_path} -v 3 > {output_path}"
+    def run_bowtie(self, index:str, fasta_path:str, output_path:str) -> None:
+        cmd = f"bowtie -x {index} -a -f {fasta_path} -v 3 > {output_path}"
         self.run_command(cmd=cmd)

@@ -1,13 +1,16 @@
 # qTagGer
 Description soon follows
 
-## Config
-
 ## Usage
+The tool was tested on Ubuntu 22.04 LTS, Python version 3.10.4
 
 ## Docker
 
-## Cite this Tool
+## Config
+
+## Requirements
+
+## Cite 
 Lindeboom, T. A., Sanchez Olmos, M. del C., Schulz, K., Brinkmann, C. K., Ramirez Rojas, A. A., Hochrein, L., & Schindler, D. (2022). L-SCRaMbLE creates large-scale genome rearrangements in synthetic Sc2.0 chromosomes. Cold Spring Harbor Laboratory. https://doi.org/10.1101/2022.12.12.519280
 
 ## Bibliography

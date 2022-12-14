@@ -16,8 +16,8 @@ class Target:
 
     def load_record(self) -> SeqRecord:
         ''' Returns the 0-th SeqRecord'''
-        file_extension = pathlib.Path(self.target_path).suffix
-
+        file_extension = self.target_path.split(".")[-1]
+        print(file_extension)
         if file_extension in ["gb", "gbk"]:
             rec_type = "genbank"
         elif file_extension in ["dna"]:
@@ -34,7 +34,10 @@ class Target:
         logging.info(f"Successfully loaded the target sequence record")
         return records[0]
 
+    def write_fasta(self) -> None:
+        SeqIO.write(self.record, "target.fasta", "fasta")
 
     def __post_init__(self) -> None:
         self.record = self.load_record()
         self.seq = str(self.record.seq).upper()
+        self.write_fasta()

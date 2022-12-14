@@ -2,11 +2,13 @@ import re
 import shutil
 import pandas as pd 
 from subprocess import Popen, PIPE
-
-from selection import Selection
 from dataclasses import dataclass, field
 
+from selection import Selection
 
+
+
+PRIMER_FASTA_FILE = "potential_primers.fasta"
 
 @dataclass
 class Primer3Interface:
@@ -16,24 +18,19 @@ class Primer3Interface:
     primer_sites: pd.DataFrame = field(init=False)
 
 
-    def run(self):
+    def run(self) -> None:
         self.write_settings()
         self.run_primer3()
         self.parse_results()
         self.generate_fasta()
 
 
-    def write_settings(self):
+    def write_settings(self) -> None:
         # create a primer3 settings file
         shutil.copyfile("settings.bak", "settings")
         with open("settings", "a") as file:
-            for site in targets:
-                start = min(site[0], 400)
-                seq = target_sequence[site[0]-start:site[1]+400]
-                file.write(f"SEQUENCE_ID=recomb_site_{site[0]}\n")
-                file.write(f"SEQUENCE_TEMPLATE={seq}\n")
-                file.write(f"SEQUENCE_TARGET={start},{site[1]-site[0]}\n")
-                file.write("=\n")
+            for site in self.selection.regions:
+                file.write(str(site)) # using __repr__ of ROIs
 
 
     def run_primer3(self) -> None:
@@ -44,18 +41,8 @@ class Primer3Interface:
             print(stderr.decode("ascii"))
 
 
-    def parse_results(self):
-        with open(self.result_path) as file:
-            data = file.read()
-
-        pattern = r"(?s)(?=PRIMER_PAIR_([0-9]+)_PENALTY)(.*?)(.*?PRIMER_PAIR_[0-9]+_PRODUCT_TM=[0-9]+.[0-9]+)"
-        re_result = re.findall(pattern , data)
-
-        dfdat = []
-        for r in re_result:
-            d = r[-1].split("\n")
-            e = [x for x in d if x]
-            dfdat.append([x.split("=")[1] for x in e])
+    def parse_results(self) -> None:
+        # primer3 txt result to pandas dataframe
 
         cols = ["primer_pair_penalty",
                 "primer_left_penalty",
@@ -81,18 +68,30 @@ class Primer3Interface:
                 "primer_pair_product_size",
                 "primer_pair_product_tm"]
 
-        df2 = pd.DataFrame(data=dfdat, columns=cols)
+        with open(self.result_path) as file:
+            data = file.read()
+
+        pattern = r"(?s)(?=PRIMER_PAIR_([0-9]+)_PENALTY)(.*?)(.*?PRIMER_PAIR_[0-9]+_PRODUCT_TM=[0-9]+.[0-9]+)"
+        re_result = re.findall(pattern , data)
+
+        dfdat = []
+        for r in re_result:
+            d = r[-1].split("\n")
+            e = [x for x in d if x]
+            dfdat.append([x.split("=")[1] for x in e])
+
+        df = pd.DataFrame(data=dfdat, columns=cols)
         
-        bla = []
+        names = []
         seqids = re.findall(r"SEQUENCE_ID=.+?(?=\n)", data)
         res =  re.findall(r"PRIMER_PAIR_NUM_RETURNED=.+?(?=\n)", data)
 
         for sid, rs in zip(seqids, res):
             s = sid.split("=")[1]
             for ids in range(int(rs.split("=")[1])):
-                bla.append(f"{s}_{ids}")
-        df2.insert(0, "name", bla)
-        # self.primer_sites
+                names.append(f"{s}_{ids}")
+        df.insert(0, "name", names)
+        self.primer_sites = df
 
 
     def generate_fasta(self) -> str:
@@ -100,5 +99,5 @@ class Primer3Interface:
         for _, col in self.primer_sites.iterrows():
             buffer += f">{col['name']}_fwd\n{col['primer_left_sequence']}\n{col['name']}_rev\n{col['primer_right_sequence']}\n"
 
-        with open("generated_primer.fasta", "w") as file:
+        with open(PRIMER_FASTA_FILE, "w") as file:
             file.write(buffer)
