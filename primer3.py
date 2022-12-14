@@ -1,18 +1,18 @@
 import re
-import os
+import shutil
 import pandas as pd 
+from subprocess import Popen, PIPE
 
-import config
-import task
-from primer import Candidates, Regions
 from selection import Selection
 from dataclasses import dataclass, field
 
 
 
+@dataclass
 class Primer3Interface:
     selection: Selection
-    result_path: str
+    primer3_path: str 
+    result_path: str = field(default="primer3_result")
     primer_sites: pd.DataFrame = field(init=False)
 
 
@@ -24,13 +24,26 @@ class Primer3Interface:
 
 
     def write_settings(self):
-        pass
+        # create a primer3 settings file
+        shutil.copyfile("settings.bak", "settings")
+        with open("settings", "a") as file:
+            for site in targets:
+                start = min(site[0], 400)
+                seq = target_sequence[site[0]-start:site[1]+400]
+                file.write(f"SEQUENCE_ID=recomb_site_{site[0]}\n")
+                file.write(f"SEQUENCE_TEMPLATE={seq}\n")
+                file.write(f"SEQUENCE_TARGET={start},{site[1]-site[0]}\n")
+                file.write("=\n")
 
 
-    def run_primer3(self):
-        pass
+    def run_primer3(self) -> None:
+        cmd = f"{self.primer3_path} settings > {self.result_path}"
+        process = Popen(args=cmd, stdout=PIPE, stderr=PIPE, shell=True)
+        _, stderr = process.communicate()
+        if stderr:
+            print(stderr.decode("ascii"))
 
-    
+
     def parse_results(self):
         with open(self.result_path) as file:
             data = file.read()
@@ -89,46 +102,3 @@ class Primer3Interface:
 
         with open("generated_primer.fasta", "w") as file:
             file.write(buffer)
-
-
-# Aufgaben:
-# - erstellt die notwendige primer3 settings datei
-# - startet primer3 
-# - parsed die primer3 results
-# - stored die primer3 results
-# - generates all the fasta results
-
-# Deleted make_settings(), replace later
-
-def process(result_path:str) -> None:
-    '''
-    Parent function to process everything Primer3 related
-    '''
-
-    task.run(f"{config.primer3_path} settings > {result_path}")
-    parse(result_path)
-    generate_fasta()
-
-
-
-def parse(result_path:str) -> None:
-    with open(result_path) as file:
-        result_buffer = file.read()
-        output = result_buffer.split("=\n")
-
-    for out in output[1:]:
-        for i in re.split("PRIMER_PAIR_[0-9]*_PENALTY", out)[1:]:
-            name = [re.split("PRIMER_PAIR_[0-9]*_PENALTY", out)[0].split("=")[1].split("\n")[0]]
-            buffer = [n.split("=")[1] for n in i.split("\n") if "=" in n]
-            name.extend(buffer)
-            Candidates(name) #generate candidates
-
-
-def generate_fasta():
-    with open("primercheck.fasta", "w") as file:
-        for idx, cand in enumerate(Candidates.all):
-            file.write(f">{cand.target}_{idx}_fwd\n")
-            file.write(f"{cand.left_sequence}\n")
-            file.write(f">{cand.target}_{idx}_rev\n")
-            file.write(f"{cand.right_sequence}\n")
-
