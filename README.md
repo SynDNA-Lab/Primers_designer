@@ -1,6 +1,6 @@
 # qTagGer
 ## Overview
-qTagGer creates a set of diagnostic PCR amplicons for a user defined motif (i.e. loxPsym) within a user defined input sequence and utilizes [Primer3](https://doi.org/10.1385/1-59259-192-2:365) for primer design. Off-target detection is performed by applying [bowtie](https://doi.org/10.1186/gb-2009-10-3-r25) to detect all sequences with multiple matches in the genome with a defined mismatch value (default value ≤ 4 bp). All off-target and Primer3 config parameters can be customized in the corresponding `config.yaml` and `settings.bak` file. 
+qTagGer creates a set of diagnostic PCR primers for a user defined motif (i.e. loxPsym) within a user defined input sequence and utilizes [Primer3](https://doi.org/10.1385/1-59259-192-2:365) for primer design. Off-target detection is performed by applying [bowtie](https://doi.org/10.1186/gb-2009-10-3-r25) to detect all sequences with multiple matches in the genome with a defined mismatch value (default value ≤ 4 bp). All off-target and Primer3 config parameters can be customized in the corresponding `config.yaml` and `settings.bak` file. 
 
 ## Getting Started
 ### Dependencies
@@ -37,7 +37,7 @@ qTagGer was tested on Ubuntu 22.04 LTS and Python 3.10.4 using the following pro
 
 
 ## Publication
-Lindeboom, T. A., Sanchez Olmos, M. del C., Schulz, K., Brinkmann, C. K., Ramirez Rojas, A. A., Hochrein, L., & Schindler, D. (2022). L-SCRaMbLE creates large-scale genome rearrangements in synthetic Sc2.0 chromosomes. Cold Spring Harbor Laboratory. https://doi.org/10.1101/2022.12.12.519280
+Lindeboom, T. A., Sanchez Olmos, M. del C., Schulz, K., Brinkmann, C. K., Ramirez Rojas, A. A., Hochrein, L., & Schindler, D. (2022). L-SCRaMbLE creates large-scale genome rearrangements in synthetic Sc2.0 chromosomes. bioRxiv. https://doi.org/10.1101/2022.12.12.519280
 
 
 ## References
