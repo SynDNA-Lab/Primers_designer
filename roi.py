@@ -16,12 +16,13 @@ class ROI:
     roi_sequence: str = field(init=False) 
 
     def __post_init__(self) -> None:
-        self.roi_start = min(self.target_start, ROI_OFFSET)
+        self.roi_start = max(self.target_start-ROI_OFFSET, 0)
         self.roi_end = min(self.target_end+ ROI_OFFSET, len(self.genome_sequence))
         self.roi_sequence = self.genome_sequence[self.roi_start: self.roi_end]
 
     def __repr__(self) -> str:
+        buffer = min(ROI_OFFSET, self.target_start)
         seq_id = (f"SEQUENCE_ID={self.name}\n")
         seq_templ = f"SEQUENCE_TEMPLATE={self.roi_sequence}\n"
-        seq_target = f"SEQUENCE_TARGET={self.roi_start},{self.target_end-self.target_start}\n"
+        seq_target = f"SEQUENCE_TARGET={buffer},{self.target_end-self.target_start}\n"
         return f"{seq_id}{seq_templ}{seq_target}=\n"

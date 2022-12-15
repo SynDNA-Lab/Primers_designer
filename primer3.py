@@ -43,7 +43,6 @@ class Primer3Interface:
 
     def parse_results(self) -> None:
         # primer3 txt result to pandas dataframe
-
         cols = ["primer_pair_penalty",
                 "primer_left_penalty",
                 "primer_right_penalty",
@@ -90,7 +89,10 @@ class Primer3Interface:
             s = sid.split("=")[1]
             for ids in range(int(rs.split("=")[1])):
                 names.append(f"{s}_{ids}")
+
+        positions = [nam.split("_")[-2] for nam in names]     
         df.insert(0, "name", names)
+        df.insert(1, "position", positions)
         self.primer_sites = df
 
 

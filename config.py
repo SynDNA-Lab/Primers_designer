@@ -11,10 +11,10 @@ class Config:
     # General Settings:
     jobname: str = field(init=False)
     target_path: str = field(init=False)
-    chromosome: str = field(init=False)
+    top: str = field(init=False)
 
     # Primer Settings:
-    offtarget_size_cutoff: int = field(init=False, default=10_000) #prev. max_pcr_offtarget
+    offtarget_size_cutoff: int = field(init=False, default=10_000) 
     sponge_value: int = field(init=False, default=5) # number of maximal offtarget binding sites across loci
 
     # Paths:
@@ -34,7 +34,7 @@ class Config:
 
         self.jobname = config["jobname"]
         self.target_path = config["target"]
-        self.chromosome = config["chromosome"]
+        self.top = config["top"]
         
         self.offtarget_size_cutoff = config["offtarget_size_cutoff"] 
         self.sponge_value = config["sponge_value"]

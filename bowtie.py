@@ -15,18 +15,23 @@ class BowtieResult:
 
     def __post_init__(self) -> None:
         self.parse_data()
+        #breakpoint()
 
-
-    def split_data(self, lst:list[str], index:int) -> list[str]:
-        return [l.split("_")[index] for l in lst]
+    def split_data(self, lst:list[str], instruction:str) -> list[str]:
+        if instruction == "orientation":
+            return [l.split("_")[-1] for l in lst]
+        elif instruction == "id":
+            return ["_".join([l.split("_")[-3], l.split("_")[-2]]) for l in lst]
+        else:
+            raise ValueError(f"Unknown bowtie parser instruction {instruction}")
 
 
     def parse_data(self) -> None:
         df = pd.read_csv(self.result_path, sep="\t", header=None)
         df.columns =  ["name", "strand", "reference", "start", "sequence", "quality", "instances", "mismatch_descriptor"]
         df = df.drop_duplicates()
-        df["id"] = self.split_data(df.name, -2) #primer name to id
-        df["orientation"] = self.split_data(df.name, -1) #primer name to orientation ({fwd, rev})
+        df["id"] = self.split_data(df.name, "id") #primer name to id
+        df["orientation"] = self.split_data(df.name, "orientation") #primer name to orientation ({fwd, rev})
         
         self.result = df
 
@@ -62,7 +67,6 @@ class BowtieInterface:
         targetpath = homepath + "/input/target.fasta" 
 
         cmd = f"cd {btpath} && bowtie-build -f {targetpath} {BASENAME} && cd {homepath}/input"
-        print(cmd)
         self.run_command(cmd=cmd)
 
 

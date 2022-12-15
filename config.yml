@@ -3,7 +3,7 @@
 
 # General Settings:
 jobname: NeoChrIII
-chromosome: "03"
+top: 5
 target: "neochr_URA3.gb"
 
 # Paths:

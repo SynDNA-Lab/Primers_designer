@@ -1,8 +1,10 @@
 import pandas as pd 
 import itertools
+import logging
 from dataclasses import dataclass, field
 
 from bowtie import BowtieResult
+from config import Config
 
 
 
@@ -11,8 +13,7 @@ class OfftargetChecker:
     primer_candidates: pd.DataFrame
     bowtie_target: BowtieResult 
     bowtie_genome: BowtieResult 
-    sponge_value: int
-    max_pcr_size: int
+    config: Config
     offtarget_ids: list[int] = field(init=False)
 
 
@@ -25,12 +26,13 @@ class OfftargetChecker:
         delete_buffer.extend(self.filter_offtarget(self.bowtie_genome.result))
         
         self.offtarget_ids = list(set(delete_buffer))
-        #print(self.offtarget_ids)
+        logging.info(f"{len(self.offtarget_ids)} Offtargets found")
+        self.create_primer_list()
 
 
     def get_sponges(self, data_frame:pd.DataFrame) -> list[str]:
         grouped = data_frame.groupby(["id", "orientation"])
-        sponge_df = grouped.filter(lambda x: len(x)>= self.sponge_value)
+        sponge_df = grouped.filter(lambda x: len(x)>= self.config.sponge_value)
         return sponge_df.id.unique()
 
 
@@ -46,7 +48,17 @@ class OfftargetChecker:
             
             for f, r in itertools.product(fwd, rev):
                 difference = r-f
-                if (difference > 0) and (difference <= self.max_pcr_size):
+                if (difference > 0) and (difference <= self.config.offtarget_size_cutoff):
                     return_list.append(group.id.values[0])
 
         return return_list
+
+
+    def create_primer_list(self) -> None:
+        offtargets = [f"target_{ids}" for ids in self.offtarget_ids]
+        final_df = self.primer_candidates[~self.primer_candidates.name.isin(offtargets)]
+        final_df = final_df.groupby(["position"]).head(self.config.top)
+        final_df.to_csv("qTagGer_Output.csv", index=False)
+        missed_primers = set(self.primer_candidates.position.unique()) - set(final_df.position.unique())
+        [print(f"Unable to find primer for position {mp}") for mp in missed_primers]
+            

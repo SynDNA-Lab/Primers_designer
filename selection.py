@@ -31,16 +31,15 @@ class RoxP(Selection):
         targets = [(m.start(0), m.end(0)) for m in it]
         rois = []
         for idx, trg in enumerate(targets):
-            #buffer = ROI(name=f"target_{idx}", target_start = trg[0], target_end = trg[1], genome_sequence=self.target.seq)
-            #print(buffer)
+            #breakpoint()
             rois.append(ROI(
-                name=f"target_{idx}",
+                name=f"target_{trg[0]}",
                 target_start = trg[0],
                 target_end = trg[1],
                 genome_sequence = self.target.seq
             ))
         self.regions = rois
-        #print(rois[0])
+
     '''
     shutil.copyfile("settings.bak", "settings")
     with open("settings", "a") as file:
