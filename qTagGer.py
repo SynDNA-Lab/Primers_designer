@@ -16,7 +16,6 @@ from offtarget import OfftargetChecker
 
 logging.basicConfig(stream=sys.stdout, encoding='utf-8', level=logging.INFO)
 
-
 def main(args:argparse.Namespace) -> None:
     config = Config(config_path=args.config)
     logging.info("Successfully loaded config file")
@@ -41,7 +40,6 @@ def main(args:argparse.Namespace) -> None:
     cleanup(config)
 
 
-
 def cleanup(config:Config) -> None:
     now = datetime.now() 
     folder_name = f"{config.jobname}_{now.strftime('%Y%m%d_%H%M')}"
@@ -54,7 +52,6 @@ def cleanup(config:Config) -> None:
     shutil.move("qTagGer_Output.csv", f"{folder_name}/qTagGer_Output.csv")
     os.remove("target.fasta")
 
-    
 
 if __name__ == "__main__":
     # Parser
