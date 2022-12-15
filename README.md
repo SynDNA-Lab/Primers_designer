@@ -63,9 +63,9 @@ Make sure that you have installed all aforementioned Python libraries as well as
 | target | str | "neochrIII.gb" | Path to target record |
 | offtarget_size_cutoff | int | 10000 | Threshold for max considered PCR offtarget product |
 | sponge_value | int | 5 | Number of max allowed primer binding sites|
-| home | str | "/home/qTagGer/qTagGer" | Path to parent folder |
-| primer3_path | str | "/home/qTagGer/qTagGer/primer3/src/primer3_core" | Path to primer3_core file |
-| bowtie_path | str | "/home/qTagGer/qTagGer/bowtie/index" | Path to bowtie index files |
+| home | str | "/home/L_SCRaMbLE/qTagGer" | Path to parent folder |
+| primer3_path | str | "/home/L_SCRaMbLE/qTagGer/primer3/src/primer3_core" | Path to primer3_core file |
+| bowtie_path | str | "/home/L_SCRaMbLE/qTagGer/bowtie/index" | Path to bowtie index files |
 
 
 
