@@ -3,24 +3,57 @@
 qTagGer creates a set of diagnostic PCR primers for a user defined motif (i.e. loxPsym) within a user defined input sequence and utilizes [Primer3](https://doi.org/10.1385/1-59259-192-2:365) for primer design. Off-target detection is performed by applying [bowtie](https://doi.org/10.1186/gb-2009-10-3-r25) to detect all sequences with multiple matches in the genome with a defined mismatch value (default value ≤ 4 bp). All off-target and Primer3 config parameters can be customized in the corresponding `config.yaml` and `settings.bak` file. 
 
 ## Getting Started
+
 ### Dependencies
-qTagGer was tested on Ubuntu 22.04 LTS and Python 3.10.4 using the following programs/libraries:
-### Programs
+qTagGer relies on the following software packages and Python libraries:   <br>
+<br>
+**Programs:**
 | Name | Version |
 |------|---------|
 | [Bowtie](https://sourceforge.net/projects/bowtie-bio/files/bowtie/1.3.1/) | 1.3.1 |
 | [Primer3](https://github.com/primer3-org/primer3) | 2.6.1 |
-### Python Libraries
+
+
+**Python libraries:**
+
 | Name | Version |
 |------|---------|
 | [pandas](https://pandas.pydata.org/) | ~= 1.4.3 |
 | [PyYAML](https://pyyaml.org/) | ~= 6.0 |
-| [Biopython](https://biopython.org/) | ~= 1.79 |
+| [Biopython](https://biopython.org/) | ~= 1.79 |   
 
-## Usage
+**Tested**   
+qTagGer has been tested on Ubuntu 22.04 LTS and Python 3.10.4 with the dependencies mentioned above.
+
+### Docker
+Due to the number of dependencies, it is recommended to run qTagGer via the Docker Image we've created. While Docker can be run from the command line interface, we recommend installing the [Docker Desktop](https://www.docker.com/products/docker-desktop/) app.
+If you're new to Docker follow the quick start guide that can be found [here](https://docs.docker.com/desktop/get-started/).
+The qTagGer Docker image can be downloaded from [**here**](https://example.com/). To load the image please follow the instructions from the official [Docker documentation](https://docs.docker.com/engine/reference/commandline/load/).
+
+**Creating the Docker Container**   
+When creating the container, it is important to set the following optional settings:   
+
+**Volumes:**
+> **Host path**: File path to an empty folder on your host machine.
+
+> **Container path**: /home/L_SCRaMbLE/qTagGer/input
+
+Providing these settings will allow you to interact with the container by parsing files into the host folder. 
+
+**Running qTagGer in Docker**
+1. Start and connect to the container.
+2. Switch the shell from `sh` to `bash` by entering and executing the `bash` command.
+3. Navigate to the script directory by executing 
+```cd home/L_SCRaMbLE/qTagGer/```
+4. Change the files as needed (Note: Make sure to change the target path in the config.yml to include "input/" as a prefix)
+6. Execute qTagGer by running
+```python3 qTagGer.py -c input/config.yml```
+7. qTagGer now executes and generates the primers and outputs them to the folder `{jobname}_{datetime}`
+
+### Running qTagGer without Docker
+Make sure that you have installed all aforementioned Python libraries as well as primer3 and bowtie correctly. After downloading qTagGer and modifying the config.yml, you can run the program as follows:
 > python3 qTagGer.py -c config.yml
 
-## Docker
 
 ## Configuration
 | Name | Type | Example | Description |
