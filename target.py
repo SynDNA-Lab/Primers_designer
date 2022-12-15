@@ -1,5 +1,4 @@
 import logging
-import pathlib
 from dataclasses import dataclass, field
 
 from Bio import SeqIO

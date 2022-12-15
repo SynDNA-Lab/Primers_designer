@@ -1,6 +1,6 @@
 import pandas as pd 
-from dataclasses import dataclass, field
 from subprocess import Popen, PIPE
+from dataclasses import dataclass, field
 
 from config import Config
 
@@ -15,7 +15,7 @@ class BowtieResult:
 
     def __post_init__(self) -> None:
         self.parse_data()
-        #breakpoint()
+
 
     def split_data(self, lst:list[str], instruction:str) -> list[str]:
         if instruction == "orientation":

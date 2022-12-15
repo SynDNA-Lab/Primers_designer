@@ -1,7 +1,8 @@
-import pandas as pd 
-import itertools
 import logging
+import itertools
 from dataclasses import dataclass, field
+
+import pandas as pd 
 
 from bowtie import BowtieResult
 from config import Config

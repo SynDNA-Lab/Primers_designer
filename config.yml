@@ -7,9 +7,9 @@ top: 5
 target: "neochr_URA3.gb"
 
 # Paths:
-home: /home/Primer/PrimerDesigner
-primer3_path: /home/Primer/PrimerDesigner/primer3/src/primer3_core
-bowtie_path: /home/Primer/PrimerDesigner/bowtie/index
+home: /home/qTagGer/qTagGer
+primer3_path: /home/qTagGer/qTagGer/primer3/src/primer3_core
+bowtie_path: /home/qTagGer/qTagGer/bowtie/index
 
 # Primer Settings:
 offtarget_size_cutoff: 10_000 # cutoff offtarget amplicon size

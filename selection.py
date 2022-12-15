@@ -1,6 +1,7 @@
 import re
-from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+
 from target import Target
 from roi import ROI
 
@@ -39,8 +40,3 @@ class RoxP(Selection):
                 genome_sequence = self.target.seq
             ))
         self.regions = rois
-
-    '''
-    shutil.copyfile("settings.bak", "settings")
-    with open("settings", "a") as file:
-    '''

@@ -1,8 +1,8 @@
-import argparse
-import logging
+import os
 import sys
 import shutil
-import os
+import argparse
+import logging
 from datetime import datetime
 
 from config import Config
