@@ -67,7 +67,8 @@ Make sure that you have installed all aforementioned Python libraries as well as
 | primer3_path | str | "/home/L_SCRaMbLE/qTagGer/primer3/src/primer3_core" | Path to primer3_core file |
 | bowtie_path | str | "/home/L_SCRaMbLE/qTagGer/bowtie/index" | Path to bowtie index files |
 
-
+## License
+This is a repository written under the [CC BY-NC 4.0 license](http://creativecommons.org/licenses/by-nc/4.0/)
 
 ## Publication
 Lindeboom, T. A., Sanchez Olmos, M. del C., Schulz, K., Brinkmann, C. K., Ramirez Rojas, A. A., Hochrein, L., & Schindler, D. (2022). L-SCRaMbLE creates large-scale genome rearrangements in synthetic Sc2.0 chromosomes. bioRxiv. https://doi.org/10.1101/2022.12.12.519280
