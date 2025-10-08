@@ -14,7 +14,7 @@ class BowtieResult:
     result: pd.DataFrame = field(init=False)
 
     def __post_init__(self) -> None:
-        self.parse_data()
+        self.parse_data_corrected()
 
 
     def split_data(self, lst:list[str], instruction:str) -> list[str]:
@@ -33,6 +33,21 @@ class BowtieResult:
         df["id"] = self.split_data(df.name, "id") #primer name to id
         df["orientation"] = self.split_data(df.name, "orientation") #primer name to orientation ({fwd, rev})
         
+        self.result = df
+
+    def parse_data_corrected(self) -> None:
+        try:
+            df = pd.read_csv(self.result_path, sep="\t", header=None)
+        except pd.errors.EmptyDataError:
+            # If file is empty, create an empty DataFrame with the expected structure
+            df = pd.DataFrame(columns=["name", "strand", "reference", "start", "sequence", "quality", "instances", "mismatch_descriptor"])
+
+        if not df.empty:
+            df.columns = ["name", "strand", "reference", "start", "sequence", "quality", "instances", "mismatch_descriptor"]
+            df = df.drop_duplicates()
+            df["id"] = self.split_data(df.name, "id")  # primer name to id
+            df["orientation"] = self.split_data(df.name, "orientation")  # primer name to orientation ({fwd, rev})
+
         self.result = df
 
 
@@ -64,9 +79,9 @@ class BowtieInterface:
     def create_index(self) -> None:
         homepath = self.config.home_path
         btpath = self.config.bowtie_path
-        targetpath = homepath + "/input/target.fasta" 
+        targetpath = homepath + "/target.fasta" 
 
-        cmd = f"cd {btpath} && bowtie-build -f {targetpath} {BASENAME} && cd {homepath}/input"
+        cmd = f"cd {btpath} && bowtie-build -f {targetpath} {BASENAME} && cd {homepath}"
         self.run_command(cmd=cmd)
 
 

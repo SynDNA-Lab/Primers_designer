@@ -16,6 +16,7 @@ class OfftargetChecker:
     bowtie_genome: BowtieResult 
     config: Config
     offtarget_ids: list[int] = field(init=False)
+    final_primers : pd.DataFrame = field(init=False)
 
 
     def __post_init__(self) -> None:
@@ -62,4 +63,5 @@ class OfftargetChecker:
         final_df.to_csv("qTagGer_Output.csv", index=False)
         missed_primers = set(self.primer_candidates.position.unique()) - set(final_df.position.unique())
         [print(f"Unable to find primer for position {mp}") for mp in missed_primers]
+        self.final_primers = final_df
             

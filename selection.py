@@ -39,4 +39,30 @@ class RoxP(Selection):
                 target_end = trg[1],
                 genome_sequence = self.target.seq
             ))
+        print(rois[0])
+        self.regions = rois
+
+@dataclass
+class Overlap(Selection):
+    target: Target
+    regions: list[ROI] = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.selection()
+
+    def selection(self) -> list[ROI]:
+        targets = []
+        for features in self.target.record.features : 
+            if features.type == 'misc_feature' :
+                targets.append([features.location.start,features.location.end])
+        rois = []
+        for idx, trg in enumerate(targets):
+            #breakpoint()
+            rois.append(ROI(
+                name=f"target_{trg[0]}",
+                target_start = trg[0],
+                target_end = trg[1],
+                genome_sequence = self.target.seq
+            ))
+        print(rois[0])
         self.regions = rois
