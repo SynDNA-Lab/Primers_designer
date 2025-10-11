@@ -19,10 +19,10 @@ logging.basicConfig(stream=sys.stdout, encoding='utf-8', level=logging.INFO)
 st.title("Primer Design for Overlap :dna:")
 option = st.sidebar.radio(
     "Choose the type of sequence :",
-    ("Overlap sequence", "PCR product sequence")
+    ("Overlap", "Multiple DNA fragments")
 )
 def main_overlap() -> None : 
-    st.header("Design from :red[_PCR sequences_] ")
+    st.header("Design from :red[_Overlap_] ")
     st.subheader("Downloading the configuration")
     uploaded_config = st.file_uploader("Select configuration file")
     if uploaded_config is not None :
@@ -30,22 +30,21 @@ def main_overlap() -> None :
         current_dir = os.getcwd()
         save_path = os.path.join(current_dir, uploaded_config.name)
         with open(save_path,"wb") as f : 
-                f.write(uploaded_config.read()) ##read might be the issue 
-                st.success(f'Genome successfully uploaded')
+                f.write(uploaded_config.read()) 
+                st.success(f'Config file successfully uploaded')
 
         config = Config(config_path=config_path)
         st.write("Config loaded successfully.")
         logging.info("Successfully loaded config file")
-        st.header("Genome and overlap sequence loading")
-        st.header("Downloading the genome file")
-        uploaded_genome = st.file_uploader("Select a genome fasta file...", type = ['fa','fasta'])
+        st.header(" Expected DNA assembly and overlap sequence loading")
+        uploaded_genome = st.file_uploader("Select a fasta file...", type = ['fa','fasta'])
         if uploaded_genome is not None :
             genome_path = uploaded_genome.name
             current_dir = os.getcwd()
             save_path = os.path.join(current_dir, uploaded_genome.name)
             with open(save_path,"wb") as f : 
                 f.write(uploaded_genome.read()) ##read might be the issue 
-                st.success(f'Genome successfully uploaded')
+                st.success(f'Expected DNA assembly successfully uploaded')
         
         #genome_path = st.text_input("Enter genome fasta file")
         seq = st.text_input("Enter Overlap sequence")
@@ -56,9 +55,9 @@ def main_overlap() -> None :
         if st.button('Submit sequence'):
             if genome_path:  # Path is not empty
                 st.session_state['sequence_submitted'] = True
-                st.success(f"Genome fasta file path submitted: {genome_path}")
+                st.success(f"Expected DNA assembly fasta file path submitted: {genome_path}")
             else:
-                st.error("Please enter a valid genome path before submitting.")
+                st.error("Please enter a valid Expected DNA assembly before submitting.")
                 st.stop()  # Stop execution here
 
         # Only run config loading after successful submit
@@ -66,7 +65,7 @@ def main_overlap() -> None :
             try:
                 annotator = OverlapSequenceAnnotator(genome_path=genome_path,search_seq=seq)
                 annotator.run()
-                logging.info("Successfully performed genome annotation")
+                logging.info("Successfully performed the expected DNA assembly annotation")
                 target = Target(target_path="annotated_genome.gb")
                 logging.info("Successfully loaded target record")
                 selection = Overlap(target=target)
@@ -107,7 +106,7 @@ def main_overlap() -> None :
 
 
 def main_pcr() -> None:
-    st.header("Design of primers from :red[_Overlap sequence_]")
+    st.header("Design of primers from :red[_Multiples DNA sequences_]")
     st.subheader("Downloading the configuration")
     uploaded_config = st.file_uploader("Select configuration file")
     if uploaded_config is not None :
@@ -116,25 +115,24 @@ def main_pcr() -> None:
         save_path = os.path.join(current_dir, uploaded_config.name)
         with open(save_path,"wb") as f : 
                 f.write(uploaded_config.read()) ##read might be the issue 
-                st.success(f'Genome successfully uploaded')
+                st.success(f'Config file successfully uploaded')
 
         config = Config(config_path=config_path)
         st.write("Config loaded successfully.")
         logging.info("Successfully loaded config file")
-        st.header("Genome and PCR fragment loading")
-        st.header("Downloading the genome file")
-        uploaded_genome = st.file_uploader("Select a genome fasta file...", type = ['fa','fasta'])
+        st.header("Expected DNA assembly and fragments loading")
+        uploaded_genome = st.file_uploader("Select the expected DNA assembly fasta file...", type = ['fa','fasta'])
         if uploaded_genome is not None :
             genome_path = uploaded_genome.name
             current_dir = os.getcwd()
             save_path = os.path.join(current_dir, uploaded_genome.name)
             with open(save_path,"wb") as f : 
                 f.write(uploaded_genome.read()) ##read might be the issue 
-                st.success(f'Genome successfully uploaded')
+                st.success(f'Expected DNA assembly successfully uploaded')
         
         #genome_path = st.text_input("Enter genome fasta file")
-        seq1 = st.text_input("Enter PCR fragment 1 sequence")
-        seq2 = st.text_input("Enter PCR fragment 2 sequence")
+        seq1 = st.text_input("Enter fragment 1 sequence")
+        seq2 = st.text_input("Enter fragment 2 sequence")
         # Use session state to track submit click
         if 'sequence_submitted' not in st.session_state:
             st.session_state['sequence_submitted'] = False
@@ -152,7 +150,7 @@ def main_pcr() -> None:
             try:
                 annotator = PCROverlapAnnotator(genome_path=genome_path,seq1=seq1,seq2=seq2)
                 annotator.run()
-                logging.info("Successfully performed genome annotation")
+                logging.info("Successfully performed expected DNA assembly annotation")
                 target = Target(target_path="annotated_genome.gb")
                 logging.info("Successfully loaded target record")
                 selection = Overlap(target=target)
@@ -199,7 +197,7 @@ def cleanup(config:Config) -> None:
     
 
 
-if option == "Overlap sequence" :
+if option == "Overlap" :
     main_overlap()
-elif option == 'PCR product sequence' :
+elif option == 'Multiple DNA fragments' :
     main_pcr()
