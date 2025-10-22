@@ -12,7 +12,7 @@ from primer3 import Primer3Interface
 from bowtie import BowtieInterface
 from offtarget import OfftargetChecker
 from selection import  Overlap
-
+from Vizualisation import Visualization
 
 
 logging.basicConfig(stream=sys.stdout, encoding='utf-8', level=logging.INFO)
@@ -20,7 +20,7 @@ logging.basicConfig(stream=sys.stdout, encoding='utf-8', level=logging.INFO)
 def main(args:argparse.Namespace) -> None:
     config = Config(config_path=args.config)
     logging.info("Successfully loaded config file")
-    annotator = PCROverlapAnnotator(seq1="TAACTTTAAATAATTGGCATTATTTAAAGTTATATTAGGG",seq2="GAACATGTTAACTTTAAATAATTGGCATTATTTAAAGTTA")
+    annotator = PCROverlapAnnotator(genome_path="test.fa",seq1="TAACTTTAAATAATTGGCATTATTTAAAGTTATATTAGGG",seq2="GAACATGTTAACTTTAAATAATTGGCATTATTTAAAGTTA")
     annotator.run()
     logging.info("Successfully performed genome annotation")
     target = Target(target_path="annotated_genome.gb")
@@ -41,6 +41,10 @@ def main(args:argparse.Namespace) -> None:
         bowtie_genome = bowtie.result_genome,
         config=config
     )
+    visualization = Visualization(
+        sequence = str(selection.regions[0]).upper(), 
+        primers_df=check_offtargets.final_primers,
+        overlap_seq=annotator.overlap_seq)
     cleanup(config)
 
 

@@ -13,7 +13,7 @@ from primer3 import Primer3Interface
 from bowtie import BowtieInterface
 from offtarget import OfftargetChecker
 from overlap_annotator import PCROverlapAnnotator, OverlapSequenceAnnotator
-
+from Vizualisation import Visualization
 
 logging.basicConfig(stream=sys.stdout, encoding='utf-8', level=logging.INFO)
 st.title("Primer Design for Overlap :dna:")
@@ -24,85 +24,105 @@ option = st.sidebar.radio(
 def main_overlap() -> None : 
     st.header("Design from :red[_Overlap_] ")
     st.subheader("Downloading the configuration")
-    uploaded_config = st.file_uploader("Select configuration file")
-    if uploaded_config is not None :
-        config_path = uploaded_config.name
+    config = Config()
+    logging.info("Successfully loaded config file")
+    st.header(" Expected DNA assembly and overlap sequence loading")
+    uploaded_genome = st.file_uploader("Select a fasta file...", type = ['fa','fasta'])
+    if uploaded_genome is not None :
+        genome_path = uploaded_genome.name
         current_dir = os.getcwd()
-        save_path = os.path.join(current_dir, uploaded_config.name)
+        save_path = os.path.join(current_dir, uploaded_genome.name)
         with open(save_path,"wb") as f : 
-                f.write(uploaded_config.read()) 
-                st.success(f'Config file successfully uploaded')
+            f.write(uploaded_genome.read()) ##read might be the issue 
+            st.success(f'Expected DNA assembly successfully uploaded')
+    st.title("Conditional File Upload")
+    # Step 1: Show a checkbox
+    show_uploader = st.checkbox("Specific primer3 settings file?")
 
-        config = Config(config_path=config_path)
-        st.write("Config loaded successfully.")
-        logging.info("Successfully loaded config file")
-        st.header(" Expected DNA assembly and overlap sequence loading")
-        uploaded_genome = st.file_uploader("Select a fasta file...", type = ['fa','fasta'])
-        if uploaded_genome is not None :
-            genome_path = uploaded_genome.name
-            current_dir = os.getcwd()
-            save_path = os.path.join(current_dir, uploaded_genome.name)
-            with open(save_path,"wb") as f : 
-                f.write(uploaded_genome.read()) ##read might be the issue 
-                st.success(f'Expected DNA assembly successfully uploaded')
-        
-        #genome_path = st.text_input("Enter genome fasta file")
-        seq = st.text_input("Enter Overlap sequence")
-        # Use session state to track submit click
-        if 'sequence_submitted' not in st.session_state:
-            st.session_state['sequence_submitted'] = False
-        # Handle button click
-        if st.button('Submit sequence'):
-            if genome_path:  # Path is not empty
-                st.session_state['sequence_submitted'] = True
-                st.success(f"Expected DNA assembly fasta file path submitted: {genome_path}")
-            else:
-                st.error("Please enter a valid Expected DNA assembly before submitting.")
-                st.stop()  # Stop execution here
+    uploaded_settings = None  # Define it outside for later use
 
-        # Only run config loading after successful submit
-        if st.session_state['sequence_submitted']:
+    # Step 2: If checked, show the uploader
+    if show_uploader:
+        uploaded_settings = st.file_uploader("Drop your file here", type=["bak"])
+        st.write("Primer3 webpage for designing : https://primer3.org/manual.html ")
+    # Step 3: Handle file or lack of it
+    if uploaded_settings is not None:
+        current_dir = os.getcwd()
+        save_path = os.path.join(current_dir, "settings_spec.bak")
+        specific_file = True
+        with open(save_path,"wb") as f : 
+            f.write(uploaded_settings.read()) ##read might be the issue 
+            st.success(f'Expected DNA assembly successfully uploaded')
+    else:
+        if show_uploader:
+            st.warning("No file uploaded yet.")
+        else:
+            st.info("File upload skipped.")
+            specific_file = False
+
+    #genome_path = st.text_input("Enter genome fasta file")
+    seq = st.text_input("Enter Overlap sequence")
+
+    # Use session state to track submit click
+    if 'sequence_submitted' not in st.session_state:
+        st.session_state['sequence_submitted'] = False
+    # Handle button click
+    if st.button('Submit sequence'):
+        if genome_path:  # Path is not empty
+            st.session_state['sequence_submitted'] = True
+            st.success(f"Expected DNA assembly fasta file path submitted: {genome_path}")
+        else:
+            st.error("Please enter a valid Expected DNA assembly before submitting.")
+            st.stop()  # Stop execution here
+
+    # Only run config loading after successful submit
+    if st.session_state['sequence_submitted']:
+        try:
+            annotator = OverlapSequenceAnnotator(genome_path=genome_path,search_seq=seq)
+            annotator.run()
+            logging.info("Successfully performed the expected DNA assembly annotation")
+            target = Target(target_path="annotated_genome.gb")
+            logging.info("Successfully loaded target record")
+            selection = Overlap(target=target)
+            logging.info("Successfully performed selection")
+            logging.info("Running Primer3...")
+            p3interface = Primer3Interface(selection=selection, primer3_path=config.primer3_path,specific_file = specific_file)
+            p3interface.run()
+            logging.info("Primer3 finished")
+            logging.info("Running Bowtie")
+            bowtie = BowtieInterface(config=config)
+            logging.info("Successfully performed bowtie alignments")
+            logging.info("Offtarget checking")
+            check_offtargets = OfftargetChecker(
+                primer_candidates = p3interface.primer_sites,
+                bowtie_target = bowtie.result_target,
+                bowtie_genome = bowtie.result_genome,
+                config=config
+            )
+            st.dataframe(check_offtargets.final_primers)
+            visualization = Visualization(
+            sequence = str(selection.regions[0]).upper(), 
+            primers_df=check_offtargets.final_primers,
+            overlap_seq=annotator.search_seq)
+            st.image("primers_plot.png")
+            cleanup(config)
             try:
-                annotator = OverlapSequenceAnnotator(genome_path=genome_path,search_seq=seq)
-                annotator.run()
-                logging.info("Successfully performed the expected DNA assembly annotation")
-                target = Target(target_path="annotated_genome.gb")
-                logging.info("Successfully loaded target record")
-                selection = Overlap(target=target)
-                logging.info("Successfully performed selection")
-                logging.info("Running Primer3...")
-                p3interface = Primer3Interface(selection=selection, primer3_path=config.primer3_path)
-                p3interface.run()
-                logging.info("Primer3 finished")
-                logging.info("Running Bowtie")
-                bowtie = BowtieInterface(config=config)
-                logging.info("Successfully performed bowtie alignments")
-                logging.info("Offtarget checking")
-                check_offtargets = OfftargetChecker(
-                    primer_candidates = p3interface.primer_sites,
-                    bowtie_target = bowtie.result_target,
-                    bowtie_genome = bowtie.result_genome,
-                    config=config
-                )
-                st.dataframe(check_offtargets.final_primers)
-                cleanup(config)
-                try:
-                    if os.path.exists(save_path):
-                        os.remove(save_path)
-                except Exception as e:
-                    st.error(f"Error during cleanup: {e}")
-                # try:
-                #     if os.path.exists(config_path):
-                #         os.remove(config_path)
-                # except Exception as e:
-                #         st.error(f"Error during cleanup: {e}")
-                # try:
-                #     if os.path.exists(genome_path):
-                #         os.remove(genome_path)
-                # except Exception as e:
-                #         st.error(f"Error during cleanup: {e}")
+                if os.path.exists(save_path):
+                    os.remove(save_path)
             except Exception as e:
-                st.error(f"Failed to load config: {e}")
+                st.error(f"Error during cleanup: {e}")
+            # try:
+            #     if os.path.exists(config_path):
+            #         os.remove(config_path)
+            # except Exception as e:
+            #         st.error(f"Error during cleanup: {e}")
+            # try:
+            #     if os.path.exists(genome_path):
+            #         os.remove(genome_path)
+            # except Exception as e:
+            #         st.error(f"Error during cleanup: {e}")
+        except Exception as e:
+                st.error(f"Failed to load DNA Fragments : {e}")
 
 
 def main_pcr() -> None:
@@ -170,6 +190,11 @@ def main_pcr() -> None:
                     config=config
                 )
                 st.dataframe(check_offtargets.final_primers)
+                visualization = Visualization(
+                    sequence = str(selection.regions[0]).upper(), 
+                    primers_df=check_offtargets.final_primers,
+                    overlap_seq=annotator.overlap_seq)
+                st.image('primers_plot.png')
                 cleanup(config)
                 try:
                     if os.path.exists(save_path):

@@ -1,7 +1,6 @@
 #python3 genome_overlap_annotator.py genome.fasta ACGTACGTAC GTACTGATCG
 
 import argparse
-import streamlit as st
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqFeature import SeqFeature, FeatureLocation
@@ -15,14 +14,20 @@ class PCROverlapAnnotator:
         self.seq2 = seq2
         self.output_path = "annotated_genome.gb"
         self.genome_record = None
+        self.overlap_seq = None
 
     def __post_init__(self): 
         self.run()
 
-    def load_genome(self):
-        with open(self.genome_path, "r") as handle:
-            self.genome_record = SeqIO.read(handle, "fasta")
-        print(f"Genome loaded: {self.genome_record.id} ({len(self.genome_record.seq)} bp)")
+    def load_genome(self): 
+        file_name = self.genome_path.lower()
+    
+        if any(ext in file_name for ext in ['fa', 'fasta']):
+            with open(self.genome_path, "r") as handle: 
+                self.genome_record = SeqIO.read(handle, "fasta") 
+        elif any(ext in file_name for ext in ['gb', 'genbank']):
+            with open(self.genome_path, "r") as handle: 
+                self.genome_record = SeqIO.read(handle, "genbank") 
 
     def find_sequence(self, sequence):
         genome_seq = str(self.genome_record.seq).upper()
@@ -51,7 +56,7 @@ class PCROverlapAnnotator:
             return
 
         print(f"Overlapping region: {overlap_start} - {overlap_end}")
-
+        self.overlap_seq = str(self.genome_record.seq)[overlap_start:overlap_end]
         # Create a feature for the overlapping region
         overlap_feature = SeqFeature(
             FeatureLocation(overlap_start, overlap_end),
@@ -93,8 +98,14 @@ class OverlapSequenceAnnotator:
         self.run()
 
     def load_genome(self): 
-        with open(self.genome_path, "r") as handle: 
-            self.genome_record = SeqIO.read(handle, "fasta") 
+        file_name = self.genome_path.lower()
+    
+        if any(ext in file_name for ext in ['fa', 'fasta']):
+            with open(self.genome_path, "r") as handle: 
+                self.genome_record = SeqIO.read(handle, "fasta") 
+        elif any(ext in file_name for ext in ['gb', 'genbank']):
+            with open(self.genome_path, "r") as handle: 
+                self.genome_record = SeqIO.read(handle, "genbank") 
 
     def find_sequence(self): 
         genome_seq = str(self.genome_record.seq).upper() 

@@ -14,37 +14,68 @@ from primer3 import Primer3Interface
 from bowtie import BowtieInterface
 from offtarget import OfftargetChecker
 from selection import  Overlap
-
-
+from Vizualisation import Visualization
+from Bio import SeqIO
+from selection import GenbankfileHandling
 
 logging.basicConfig(stream=sys.stdout, encoding='utf-8', level=logging.INFO)
 
 def main(args:argparse.Namespace) -> None:
-    config = Config(config_path=args.config)
+    genome_path = "test_fragments.gb"
+    config = Config()
     logging.info("Successfully loaded config file")
-    annotator = OverlapSequenceAnnotator(search_seq="TGAATATAGGTTATTTTTATTACTACATGCTTGAG",genome_path="test.fa")
-    annotator.run()
-    logging.info("Successfully performed genome annotation")
-    target = Target(target_path="annotated_genome.gb")
-    logging.info("Successfully loaded target record")
-    selection = Overlap(target=target)
-    logging.info("Successfully performed selection")
-    logging.info("Running Primer3...")
-    p3interface = Primer3Interface(selection=selection, primer3_path=config.primer3_path)
-    p3interface.run()
-    logging.info("Primer3 finished")
-    logging.info("Running Bowtie")
-    bowtie = BowtieInterface(config=config)
-    logging.info("Successfully performed bowtie alignments")
-    logging.info("Offtarget checking")
-    check_offtargets = OfftargetChecker(
-        primer_candidates = p3interface.primer_sites,
-        bowtie_target = bowtie.result_target,
-        bowtie_genome = bowtie.result_genome,
-        config=config
-    )
-    cleanup(config)
-
+    if "fa" in genome_path or "fasta" in genome_path : 
+        annotator = OverlapSequenceAnnotator(search_seq="TGAATATAGGTTATTTTTATTACTACATGCTTGAG",genome_path=genome_path)
+        annotator.run()
+        logging.info("Successfully performed genome annotation")
+        target = Target(target_path="annotated_genome.gb")
+        logging.info("Successfully loaded target record")
+        selection = Overlap(target=target)
+        logging.info("Successfully performed selection")
+        logging.info("Running Primer3...")
+        p3interface = Primer3Interface(selection=selection, primer3_path=config.primer3_path)
+        p3interface.run()
+        logging.info("Primer3 finished")
+        logging.info("Running Bowtie")
+        bowtie = BowtieInterface(config=config)
+        logging.info("Successfully performed bowtie alignments")
+        logging.info("Offtarget checking")
+        check_offtargets = OfftargetChecker(
+            primer_candidates = p3interface.primer_sites,
+            bowtie_target = bowtie.result_target,
+            bowtie_genome = bowtie.result_genome,
+            config=config
+        )
+        visualization = Visualization(
+            sequence = str(selection.regions[0]).upper(), 
+            primers_df=check_offtargets.final_primers,
+            overlap_seq=annotator.search_seq)
+        cleanup(config)
+    elif "gb" in genome_path or "genbank" in genome_path : 
+        target = Target(target_path=genome_path)
+        selection = GenbankfileHandling(genbank_path=genome_path, target=target)
+        logging.info("Successfully performed selection")
+        logging.info("Running Primer3...")
+        p3interface = Primer3Interface(selection=selection, primer3_path=config.primer3_path)
+        p3interface.run()
+        logging.info("Primer3 finished")
+        logging.info("Running Bowtie")
+        bowtie = BowtieInterface(config=config)
+        logging.info("Successfully performed bowtie alignments")
+        logging.info("Offtarget checking")
+        check_offtargets = OfftargetChecker(
+            primer_candidates = p3interface.primer_sites,
+            bowtie_target = bowtie.result_target,
+            bowtie_genome = bowtie.result_genome,
+            config=config
+        )
+        visualization = Visualization(
+            sequence = str(selection.regions[0]).upper(), 
+            primers_df=check_offtargets.final_primers,
+            overlap_seq=selection.overlap)
+        cleanup(config)
+    else : 
+        print("Error")
 
 def cleanup(config:Config) -> None:
     now = datetime.now() 
@@ -62,6 +93,6 @@ def cleanup(config:Config) -> None:
 if __name__ == "__main__":
     # Parser
     parser = argparse.ArgumentParser(description="qTagGer - An Automtic Amplicon Primer Designer")
-    parser.add_argument("-c", "--config", required=True, type=str, help="Path to the config file (YAML)")
+    parser.add_argument("-c", "--config", required=False, type=str, help="Path to the config file (YAML)")
     args = parser.parse_args()
     main(args)

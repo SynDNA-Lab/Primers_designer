@@ -16,6 +16,7 @@ class Primer3Interface:
     primer3_path: str 
     result_path: str = field(default="primer3_result")
     primer_sites: pd.DataFrame = field(init=False)
+    specific_file : bool = field(default=False)
 
 
     def run(self) -> None:
@@ -26,11 +27,18 @@ class Primer3Interface:
 
 
     def write_settings(self) -> None:
-        # create a primer3 settings file
-        shutil.copyfile("settings.bak", "settings")
-        with open("settings", "a") as file:
-            for site in self.selection.regions:
-                file.write(str(site)) # using __repr__ of ROIs
+        if self.specific_file == False : 
+            # create a primer3 settings file
+            shutil.copyfile("settings.bak", "settings")
+            with open("settings", "a") as file:
+                for site in self.selection.regions:
+                    print(site)
+                    file.write(str(site)) # using __repr__ of ROIs
+        else : 
+            shutil.copyfile("settings_spec.bak", "settings")
+            with open("settings", "a") as file:
+                for site in self.selection.regions:
+                    file.write(str(site)) # using __repr__ of ROIs
 
 
     def run_primer3(self) -> None:

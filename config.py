@@ -6,25 +6,25 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Config:
-    config_path: str 
+    #config_path: str 
 
     # General Settings:
-    jobname: str = field(init=False)
+    jobname: str = field(init=False, default="TEST")
     target_path: str = field(init=False)
-    top: str = field(init=False)
+    top: str = field(init=False,default=5)
 
     # Primer Settings:
     offtarget_size_cutoff: int = field(init=False, default=10_000) 
     sponge_value: int = field(init=False, default=5) # number of maximal offtarget binding sites across loci
 
     # Paths:
-    home_path: str = field(init=False, default="/home/Primer/PrimerDesigner")
-    primer3_path: str = field(init=False, default="/home/Primer/PrimerDesigner/primer3/src/primer3_core")
-    bowtie_path: str = field(init=False, default="/home/Primer/PrimerDesigner/bowtie/index")
+    home_path: str = field(init=False, default="qTagGer")
+    primer3_path: str = field(init=False, default="primer3_core")
+    bowtie_path: str = field(init=False, default="bowtie_index")
 
-
-    def __post_init__(self) -> None:
-        self.load()
+    #Can be uncomment to add your own config file. The paths given bove work if you don't modify the structure of the folder 
+    #def __post_init__(self) -> None:
+    #   self.load()
 
 
     def load(self) -> None:
