@@ -17,5 +17,5 @@ conda env create -f environment.yml --name primers_design
 conda activate primers_design
 
 #run the main script
-streamlit run streamlit run qTagGer_streamlit_genbank_fasta.py
+streamlit run qTagGer_streamlit_genbank_fasta.py
 ```
