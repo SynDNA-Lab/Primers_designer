@@ -6,7 +6,7 @@ by allowing users to quickly generate the necessary primers.
 
 ## Installation 
 
-###From Github repository
+### From Github repository
 ```bash
 # Clone the repository
 git clone https://github.com/SynDNA-Lab/Primers_designer.git
