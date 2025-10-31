@@ -18,7 +18,7 @@ class Config:
     sponge_value: int = field(init=False, default=5) # number of maximal offtarget binding sites across loci
 
     # Paths:
-    home_path: str = field(init=False, default="Primers_designer")
+    home_path: str = field(init=False, default="qTagGer")
     primer3_path: str = field(init=False, default="primer3_core")
     bowtie_path: str = field(init=False, default="bowtie_index")
 

@@ -10,10 +10,10 @@ import matplotlib.patches as patches
 
 
 class Visualization:
-    def __init__(self, sequence, primers_df, overlap_seq):
+    def __init__(self, sequence, primers_df, sequence_of_interest_seq):
         self.sequence = str(sequence.upper())
         self.primers = primers_df
-        self.overlap = overlap_seq.upper()
+        self.sequence_of_interest = sequence_of_interest_seq.upper()
         self.processed_features = []
 
         self.primer_colors = list(mcolors.TABLEAU_COLORS.values()) + list(mcolors.CSS4_COLORS.values())
@@ -23,6 +23,7 @@ class Visualization:
 
     def _find_primer_positions(self):
         """Process primers and store start/end/strand info."""
+        self.processed_features = []
         for i, row in self.primers.iterrows():
             name = row['name']
             fw_seq = row['primer_left_sequence'].upper()
@@ -31,7 +32,7 @@ class Visualization:
             # Forward primer
             fw_start = self.sequence.find(fw_seq)
             if fw_start == -1:
-                print(f"⚠️ Forward primer '{name}' not found.")
+                print(f"Forward primer '{name}' not found.")
                 continue
             fw_end = fw_start + len(fw_seq)
 
@@ -39,7 +40,7 @@ class Visualization:
             rv_seq_rc = str(Seq(rv_seq).reverse_complement())
             rv_end = self.sequence.find(rv_seq_rc)
             if rv_end == -1:
-                print(f"⚠️ Reverse primer '{name}' not found.")
+                print(f" Reverse primer '{name}' not found.")
                 continue
             rv_start = rv_end + len(rv_seq_rc) 
 
@@ -62,37 +63,39 @@ class Visualization:
                 'index': i
             })
 
-    def _find_overlap_position(self):
-        """Find and store overlap position"""
-        start = self.sequence.find(self.overlap)
+    def _find_sequence_of_interest_position(self):
+        """Find and store sequence of interest position"""
+        start = self.sequence.find(self.sequence_of_interest)
         if start == -1:
-            print("⚠️ Overlap not found.")
+            print("sequence_of_interest not found.")
             return None
-        end = start + len(self.overlap)
+        end = start + len(self.sequence_of_interest)
         return (start, end)
 
     def draw_diagram(self, output_path="primers_plot.png"):
         self._find_primer_positions()
-        overlap_pos = self._find_overlap_position()
-        overlap_center = (overlap_pos[0] + overlap_pos[1]) // 2
+        sequence_of_interest_pos = self._find_sequence_of_interest_position()
+        sequence_of_interest_center = (sequence_of_interest_pos[0] + sequence_of_interest_pos[1]) // 2
 
         # Set up plot
         fig, ax = plt.subplots(figsize=(12, 4))
         seq_length = len(self.sequence)
 
-        # Find overlap center for coordinate shift
-        if overlap_pos:
-            overlap_center = (overlap_pos[0] + overlap_pos[1]) // 2
+        # Find sequence of interest center for coordinate shift
+        if sequence_of_interest_pos:
+            sequence_of_interest_center = (sequence_of_interest_pos[0] + sequence_of_interest_pos[1]) // 2
         else:
-            overlap_center = seq_length // 2  # fallback if overlap not found
+            sequence_of_interest_center = seq_length // 2  # fallback if sequence of interest not found
 
         # Genome baseline (centered around 0)
-        ax.hlines(y=0, xmin=-overlap_center, xmax=seq_length - overlap_center, color='black', linewidth=2)
+        ax.hlines(y=0, xmin=-sequence_of_interest_center, xmax=seq_length , color='black', linewidth=2)
 
 
         # Draw primers
-        for feature in self.processed_features:
-            y = 1 + feature['index'] * 0.6  # Stack primers vertically
+        primer_positions = {}  # NEW: store arrow midpoints for each primer
+
+        for feature in reversed(self.processed_features):
+            y = 1 + (len(self.primers) - 1 - feature['index']) * 0.6
             dx = feature['end'] - feature['start']
             arrow_props = dict(
                 width=0.2,
@@ -102,59 +105,81 @@ class Visualization:
                 color=feature['color']
             )
 
+            # Draw arrow
             ax.add_patch(FancyArrow(
-                feature['start'] - overlap_center, y,
+                feature['start'] , y,
                 dx if feature['strand'] == '+' else -abs(dx),
                 0,
                 **arrow_props
             ))
 
-            # Label
-            ax.text(feature['start'] + dx / 2 - overlap_center, y + 0.25, feature['name'],
-                    ha='center', fontsize=8)
+            # Compute midpoint (for connection line)
+            midpoint_x = feature['start'] + dx / 2
+            primer_name = feature['name'].replace('.fw', '').replace('.rv', '')  # base name
 
-        # Draw overlap
-        if overlap_pos:
+            # Save midpoint position
+            if primer_name not in primer_positions:
+                primer_positions[primer_name] = []
+            primer_positions[primer_name].append((midpoint_x, y))
+
+            # Label
+            ax.text(midpoint_x, y + 0.25, feature['name'], ha='center', fontsize=8)
+
+        # Draw connecting lines between forward and reverse arrows
+        for name, coords in primer_positions.items():  # NEW
+            if len(coords) == 2:  # we have both fw and rv
+                (x1, y1), (x2, y2) = coords
+                ax.plot([x1, x2], [y1, y2], color='black', alpha = 0.4, linewidth=1.2, zorder=0)
+
+
+        # Draw
+        if sequence_of_interest_pos:
             max_height = 1 + len(self.primers) * 0.6
             label_offset = 0.4
-            overlap_x = overlap_pos[0]
-            overlap_width = overlap_pos[1] - overlap_pos[0]
+            sequence_of_interest_width = sequence_of_interest_pos[1] - sequence_of_interest_pos[0]
+            sequence_of_interest_x = sequence_of_interest_pos[0]
             rect = patches.Rectangle(
-                (overlap_x - overlap_center, 0),        # (x, y)
-                overlap_width,         # width
+                (sequence_of_interest_x, 0),        # (x, y)
+                sequence_of_interest_width,         # width
                 max_height,            # height
                 linewidth=0,
                 edgecolor=None,
                 facecolor='red',
                 alpha=0.5,
-                label="Overlap"
+                label="Sequence of Interest"
             )
             ax.add_patch(rect)
             # Optional: add label centered inside the box
             ax.text(
-                overlap_x + overlap_width / 2 - overlap_center,
+                sequence_of_interest_x + sequence_of_interest_width / 2 ,
                 max_height +label_offset,
-                "Overlap",
+                "Sequence of interest",
                 ha='center',
                 va='top',
                 fontsize=9,
                 color='red'
             )
         # Format
-        if overlap_pos:
-            overlap_center = (overlap_pos[0] + overlap_pos[1]) // 2
-            window_size = seq_length // 2  # or any other value like 500
-            x_start = max(0, overlap_center - window_size)
-            x_end = min(seq_length, overlap_center + window_size)
-            ax.set_xlim(-window_size, window_size)
-            ax.set_xlabel("Position relative to overlap center")
+        if sequence_of_interest_pos:
+            sequence_of_interest_center = (sequence_of_interest_pos[0] + sequence_of_interest_pos[1]) // 2
+
+            # Fixed ±500 bp window
+            window_size = 500
+            x_start = max(0, sequence_of_interest_center - window_size)
+            x_end = min(seq_length, sequence_of_interest_center + window_size)
+
+            # Set x-limits centered around the sequence of interest
+            ax.set_xlim(x_start, x_end)
+            ax.set_xlabel("Position (bp) in the DNA sequence")
         else:
+            # Fallback: still use ±500 if the sequence of interest was not found
+            window_size = 500
             ax.set_xlim(-window_size, window_size)
-            ax.set_xlabel("Position relative to overlap center")
+            ax.set_xlabel("Position (bp) in the DNA sequence")
 
         ax.set_ylim(-1, 1 + len(self.primers) * 0.8)
         ax.set_yticks([])
-        ax.set_title("Primer Binding Sites and Overlap Region")
+        ax.set_title("Primer Binding Sites and Sequence of interest Region")
         plt.tight_layout()
 
         # Save and/or show

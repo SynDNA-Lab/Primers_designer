@@ -12,11 +12,12 @@ PRIMER_FASTA_FILE = "potential_primers.fasta"
 
 @dataclass
 class Primer3Interface:
-    selection: Selection
+    regions: list[str]
     primer3_path: str 
     result_path: str = field(default="primer3_result")
     primer_sites: pd.DataFrame = field(init=False)
     specific_file : bool = field(default=False)
+    size_pcr_product : list[int] = field(default_factory=list)
 
 
     def run(self) -> None:
@@ -31,15 +32,30 @@ class Primer3Interface:
             # create a primer3 settings file
             shutil.copyfile("settings.bak", "settings")
             with open("settings", "a") as file:
-                for site in self.selection.regions:
-                    print(site)
-                    file.write(str(site)) # using __repr__ of ROIs
+                print(self.regions)
+                file.write(str(self.regions)) # using __repr__ of ROIs
+            with open("settings", "r") as f:
+                lines = f.readlines()
+
+            with open("settings", "w") as f:
+                for line in lines:
+                    if line.startswith("PRIMER_PRODUCT_SIZE_RANGE="):
+                        f.write(f"PRIMER_PRODUCT_SIZE_RANGE={f"{self.size_pcr_product[0]}-{self.size_pcr_product[1]}"}\n")
+                    else:
+                        f.write(line)
         else : 
             shutil.copyfile("settings_spec.bak", "settings")
             with open("settings", "a") as file:
-                for site in self.selection.regions:
-                    file.write(str(site)) # using __repr__ of ROIs
+                file.write(str(self.regions)) # using __repr__ of ROIs
+            with open("settings", "r") as f:
+                lines = f.readlines()
 
+            with open("settings", "w") as f:
+                for line in lines:
+                    if line.startswith("PRIMER_PRODUCT_SIZE_RANGE="):
+                        f.write(f"PRIMER_PRODUCT_SIZE_RANGE={f"{self.size_pcr_product[0]}-{self.size_pcr_product[1]}"}\n")
+                    else:
+                        f.write(line)
 
     def run_primer3(self) -> None:
         cmd = f"{self.primer3_path} settings > {self.result_path}"
