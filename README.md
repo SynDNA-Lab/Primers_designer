@@ -9,8 +9,8 @@ by allowing users to quickly generate the necessary primers.
 ### From Github repository
 ```bash
 # Clone the repository
-git clone https://github.com/SynDNA-Lab/Primers_designer.git
-cd Primers_designer
+git clone https://github.com/SynDNA-Lab/PrimEase.git
+cd PrimEase
 
 #installation of the virtual environment and activation
 conda env create -f environment.yml --name primers_design
