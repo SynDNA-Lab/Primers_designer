@@ -18,7 +18,7 @@ from primer3 import Primer3Interface
 from bowtie import BowtieInterface
 from offtarget import OfftargetChecker
 from sequence_annotator import OverlappingFragmentAnnotator,SequenceAnnotator
-from Visualization import Visualization
+from Visualization import Visualization, VisualizeGenbank
 
 def handle_file_upload(file, filename: str) -> str:
     """Save uploaded file to disk and return the saved path."""
@@ -26,6 +26,17 @@ def handle_file_upload(file, filename: str) -> str:
     with open(path, "wb") as f:
         f.write(file.read())
     return path
+
+def check_file_structure(path) : 
+    if "fasta" in path or "fa" in path : 
+        with open(file_name, "r") as handle:
+            if any(SeqIO.parse(handle, "fasta")) == False : 
+                raise TypeError ("Something is wrong in the structure of the fasta file. Check it and restart the code")
+    elif "genbank" in path or "gb" in path:
+        with open(file_name, "r") as handle:
+                if any(SeqIO.parse(handle, "genbank")) == False : 
+                    raise TypeError ("Something is wrong in the structure of the genbank file. Check it and restart the tool")
+    return
 
 
 def main_sequence_of_interest(uploaded_expected_structure) -> None:
@@ -37,7 +48,7 @@ def main_sequence_of_interest(uploaded_expected_structure) -> None:
         expected_structure_path = uploaded_expected_structure
     else : 
         expected_structure_path = handle_file_upload(uploaded_expected_structure, uploaded_expected_structure.name)
-
+    check_file_structure(expected_structure_path)
     st.subheader("Modification of :green[_primer3 settings_] ?")
     show_uploader = st.checkbox("Set a specific primer3 settings file")
 
@@ -106,10 +117,9 @@ def main_sequence_of_interest(uploaded_expected_structure) -> None:
                 primer_candidates=p3interface.primer_sites,
                 bowtie_target=bowtie.result_target,
                 bowtie_genome=bowtie.result_genome,
+                bowtie_host=bowtie.result_host,
                 config=config
             )
-            name = check_offtargets.final_primers.loc[0,'name']
-            name = "_".join(name.split("_")[:-1])
 
             st.dataframe(check_offtargets.final_primers[[
                                 "name",
@@ -149,7 +159,7 @@ def main_fragments(uploaded_expected_structure) -> None:
         expected_structure_path = uploaded_expected_structure
     else : 
         expected_structure_path = handle_file_upload(uploaded_expected_structure, uploaded_expected_structure.name)
-    
+    check_file_structure(expected_structure_path)
     st.subheader("Modification of :green[_primer3 settings_] ?")
     show_uploader = st.checkbox("Set a specific primer3 settings file")
 
@@ -218,6 +228,7 @@ def main_fragments(uploaded_expected_structure) -> None:
                 primer_candidates = p3interface.primer_sites,
                 bowtie_target = bowtie.result_target,
                 bowtie_genome = bowtie.result_genome,
+                bowtie_host=bowtie.result_host,
                 config=config
             )
 
@@ -253,7 +264,7 @@ def main_annotated_genbank(uploaded_expected_structure) -> None:
     expected_structure_path = None
     if uploaded_expected_structure : 
         expected_structure_path = handle_file_upload(uploaded_expected_structure, uploaded_expected_structure.name)
-    
+    check_file_structure(expected_structure_path)
     st.subheader("Modification of :green[_primer3 settings_] ?")
 
     show_uploader = st.checkbox("Set a specific primer3 settings file ?")
@@ -288,7 +299,9 @@ def main_annotated_genbank(uploaded_expected_structure) -> None:
         options=list(range(len(sequence_labels))),
         format_func=lambda x: sequence_labels[x],
     )
-
+    vizgb = VisualizeGenbank(path=expected_structure_path)
+    vizgb.draw()
+    st.image('Genbank_vizualisation.png', caption="Position of fragment of interest in the complete DNA sequence ")
     if selected_indices:
         st.markdown("### Preview of selected sequences")
         for idx in selected_indices:
@@ -324,6 +337,7 @@ def main_annotated_genbank(uploaded_expected_structure) -> None:
                     primer_candidates=p3interface.primer_sites,
                     bowtie_target=bowtie.result_target,
                     bowtie_genome=bowtie.result_genome,
+                    bowtie_host=bowtie.result_host,
                     config=config
                 )
 
@@ -380,6 +394,7 @@ def cleanup(config:Config) -> None:
     files_to_move = [
         "bt_genome.csv",
         "bt_target.csv",
+        "bt_host.csv",
         "potential_primers.fasta",
         "primer3_result",
         "settings",
@@ -468,6 +483,7 @@ elif uploaded_expected_structure:
 
 if st.session_state.get('Continue') and st.session_state.get('Option'):
     if file_type == "fasta":
+        
         if st.session_state['Option'] == "Single sequence":
             main_sequence_of_interest(uploaded_expected_structure)
         elif st.session_state['Option'] == "Overlapping DNA fragments":
@@ -480,3 +496,4 @@ if st.session_state.get('Continue') and st.session_state.get('Option'):
             main_sequence_of_interest(uploaded_expected_structure)
         elif st.session_state['Option'] == "Overlapping DNA fragments":
             main_fragments(uploaded_expected_structure)
+
