@@ -13,8 +13,8 @@ git clone https://github.com/SynDNA-Lab/PrimEase.git
 cd PrimEase
 
 #installation of the virtual environment and activation
-conda env create -f environment.yml --name primers_design
-conda activate primers_design
+conda env create -f environment.yml --name primease
+conda activate primease
 
 #run the main script
 streamlit run main_streamlit.py
