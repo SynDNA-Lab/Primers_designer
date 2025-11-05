@@ -9,7 +9,7 @@ class ROI:
     name: str
     target_start: int
     target_end: int
-    genome_sequence: str
+    expected_structure_sequence: str
 
     roi_start: int = field(init=False)
     roi_end: int = field(init=False)
@@ -17,8 +17,8 @@ class ROI:
 
     def __post_init__(self) -> None:
         self.roi_start = max(self.target_start-ROI_OFFSET, 0)
-        self.roi_end = min(self.target_end+ ROI_OFFSET, len(self.genome_sequence))
-        self.roi_sequence = self.genome_sequence[self.roi_start: self.roi_end]
+        self.roi_end = min(self.target_end+ ROI_OFFSET, len(self.expected_structure_sequence))
+        self.roi_sequence = self.expected_structure_sequence[self.roi_start: self.roi_end]
 
     def __repr__(self) -> str:
         buffer = min(ROI_OFFSET, self.target_start)

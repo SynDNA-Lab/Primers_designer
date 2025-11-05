@@ -7,6 +7,61 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrow
 import matplotlib.colors as mcolors
 import matplotlib.patches as patches
+from dna_features_viewer import BiopythonTranslator
+from Bio import SeqIO
+import matplotlib.pyplot as plt
+
+
+class VisualizeGenbank(BiopythonTranslator):
+
+    def __init__(self,path): 
+        super().__init__()
+        self.path = path 
+        self.color_map = {
+            "CDS": "#66c2a5",
+            "gene": "#fc8d62",
+            "misc_feature": "#8da0cb",
+            "rRNA": "#e78ac3",
+            "tRNA": "#a6d854",
+            "source": "#ffd92f",
+        }
+        self.output_path = "Genbank_vizualisation.png"
+
+    def draw(self) :
+        record = SeqIO.read(self.path, "genbank")
+        graphic_record = self.translate_record(record)
+        ax, _ = graphic_record.plot(figure_width=12)
+        ax.set_title("Position of the Sequence Of Interest (SOI)", fontsize=14)
+
+
+        handles = [
+            patches.Patch(color=color, label=ftype)
+            for ftype, color in self.color_map.items()
+        ]
+        ax.legend(handles=handles, title="Feature Type", bbox_to_anchor=(1.05, 1), loc="upper left")
+
+        plt.tight_layout()
+        plt.savefig(self.output_path, dpi=300)
+        plt.show()
+
+
+    
+    def compute_feature_color(self, feature):
+        # Pick color based on type, default gray if unknown
+        return self.color_map.get(feature.type, "#cccccc")
+    
+    def compute_feature_label(self, feature):
+        # Label only those with locus_tag == "fragment"
+        if ("locus_tag" in feature.qualifiers and feature.qualifiers["locus_tag"][0] == "fragment") or (feature.type == "fragment"):
+            # Use gene name, label, or locus_tag as text
+            return ("SOI"
+                # feature.qualifiers.get("gene", [""])[0]
+                # or feature.qualifiers.get("label", [""])[0]
+                # or feature.qualifiers.get("locus_tag", ["fragment"])[0]
+            )
+        else:
+            return None  # no label for other features
+
 
 
 class Visualization:

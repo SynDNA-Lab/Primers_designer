@@ -22,6 +22,7 @@ class Primer3Interface:
 
     def run(self) -> None:
         self.write_settings()
+        self.check_settings_integrity()
         self.run_primer3()
         self.parse_results()
         self.generate_fasta()
@@ -64,6 +65,14 @@ class Primer3Interface:
         if stderr:
             print(stderr.decode("ascii"))
 
+    def check_settings_integrity(self) -> None:
+        cmd = [self.primer3_path, "-check_settings_file", "settings"]
+        process = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = process.communicate()
+
+        if process.returncode != 0:
+            raise ValueError( "Primer3 settings file integrity check failed. Check your primer3 settings file "
+            )
 
     def parse_results(self) -> None:
         # primer3 txt result to pandas dataframe
@@ -97,6 +106,12 @@ class Primer3Interface:
         pattern = r"(?s)(?=PRIMER_PAIR_([0-9]+)_PENALTY)(.*?)(.*?PRIMER_PAIR_[0-9]+_PRODUCT_TM=[0-9]+.[0-9]+)"
         re_result = re.findall(pattern , data)
 
+        if not re_result:
+            raise ValueError(
+                "Primer3 did not return any primer pairs. "
+                "This may be due to overly strict design parameters, "
+                "an unsuitable input sequence, or missing primer3 configuration."
+            )
         dfdat = []
         for r in re_result:
             d = r[-1].split("\n")

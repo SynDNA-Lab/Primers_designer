@@ -14,6 +14,7 @@ class OfftargetChecker:
     primer_candidates: pd.DataFrame
     bowtie_target: BowtieResult 
     bowtie_genome: BowtieResult 
+    bowtie_host: BowtieResult
     config: Config
     offtarget_ids: list[int] = field(init=False)
     final_primers : pd.DataFrame = field(init=False)
@@ -29,6 +30,11 @@ class OfftargetChecker:
         
         self.offtarget_ids = list(set(delete_buffer))
         logging.info(f"{len(self.offtarget_ids)} Offtargets found")
+
+        host_ids = self.get_host_hits(self.bowtie_host.result)
+        logging.info(f"{len(host_ids)} primers align to host genome (will be removed)")
+        delete_buffer.extend(host_ids)
+
         self.create_primer_list()
 
 
@@ -55,6 +61,11 @@ class OfftargetChecker:
 
         return return_list
 
+    def get_host_hits(self, data_frame: pd.DataFrame) -> list[str]:
+        """Return all primer IDs that align anywhere to the host genome."""
+        if "id" not in data_frame.columns:
+            raise ValueError("bowtie_host.result must contain an 'id' column.")
+        return data_frame.id.unique().tolist()
 
     def create_primer_list(self) -> None:
         offtargets = [f"target_{ids}" for ids in self.offtarget_ids]

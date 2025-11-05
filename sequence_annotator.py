@@ -6,7 +6,6 @@ from Bio.Seq import Seq
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 from Bio.SeqRecord import SeqRecord
 
-
 class OverlappingFragmentAnnotator:
     def __init__(self,expected_structure_path,seq_frag1,seq_frag2):
         self.expected_structure_path = expected_structure_path
@@ -28,8 +27,6 @@ class OverlappingFragmentAnnotator:
         elif any(ext in file_name for ext in ['gb', 'genbank']):
             with open(self.expected_structure_path, "r") as handle: 
                 self.expected_structure = SeqIO.read(handle, "genbank") 
-
-    from Bio.SeqFeature import SeqFeature, FeatureLocation
 
     def find_overlap(self, seq1, seq2):
         seq1 = seq1.upper()
@@ -54,14 +51,23 @@ class OverlappingFragmentAnnotator:
 
         if not overlap:
             print("No overlap found between the two fragments.")
-            return
-
+            raise ValueError(
+            "No overlap found between the two fragments. "
+            "Please check that the sequences are correct and overlapping."
+        )
+        if len(overlap) < 10:
+            raise ValueError(
+                f"Overlap found is too short ({len(overlap)} bp). "
+                "Overlap must be at least 10 base pairs."
+            )
+    
         expected_structure_seq = str(self.expected_structure_record.seq).upper()
         overlap_start = expected_structure_seq.find(overlap)
 
         if overlap_start == -1:
             print(f"Overlap '{overlap}' not found in genome.")
-            return
+            raise ValueError ("The overlap between the two fragments is not in the DNA file given above. Check that both fragment are correct ")
+
 
         overlap_end = overlap_start + len(overlap)
         print(f"Overlap found in genome: {overlap} at positions {overlap_start} - {overlap_end}")
@@ -148,6 +154,6 @@ class SequenceAnnotator:
             self.write_genbank() 
             return True, pos 
         else: 
-            return False, None 
+            raise ValueError ("Pasted sequence of interest is not in the file given above")
 
  

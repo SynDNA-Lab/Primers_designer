@@ -60,16 +60,22 @@ class BowtieInterface:
     config: Config
     output_target: str = field(default="bt_target.csv")
     output_genome: str = field(default="bt_genome.csv")
+    output_host : str = field(default ="bt_host.csv")
     result_target: BowtieResult = field(init=False)
     result_genome: BowtieResult = field(init=False)
+    result_host: BowtieResult  = field(init=False)
 
 
     def __post_init__(self) -> None:
         self.create_index()
         self.run_bowtie(index=f"{self.config.bowtie_path}/target/{BASENAME}", fasta_path="potential_primers.fasta", output_path=self.output_target)
         self.run_bowtie(index=f"{self.config.bowtie_path}/s_cerevisiae/s_cerevisiae", fasta_path="potential_primers.fasta", output_path=self.output_genome)
+        if os.path.exists("bowtie_index/host/host.1.ebwt") :
+            self.run_bowtie(index=f"{self.config.bowtie_path}/host/host", fasta_path="potential_primers.fasta", output_path=self.output_host)
+            self.result_host = BowtieResult(result_path=self.output_host)
         self.result_target = BowtieResult(result_path=self.output_target)
         self.result_genome = BowtieResult(result_path=self.output_genome)
+        
     
 
     def run_command(self, cmd: str) -> None:
@@ -92,6 +98,12 @@ class BowtieInterface:
             targetpath = "Scerevisia_genome.fasta"
             Basename = "s_cerevisiae"
             cmd = f"cd {btpath}/s_cerevisiae && bowtie-build -f {targetpath} {Basename} && cd ../.."
+            self.run_command(cmd=cmd)
+        
+        if os.path.exists("bowtie_index/host/host.fasta") and (os.path.exists("bowtie_index/host/host.1.ebwt") == False) : 
+            targetpath = "host.fasta"
+            Basename = "host"
+            cmd = f"cd {btpath}/host && bowtie-build -f {targetpath} {Basename} && cd ../.."
             self.run_command(cmd=cmd)
         
     def run_bowtie(self, index:str, fasta_path:str, output_path:str) -> None:
