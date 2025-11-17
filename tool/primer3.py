@@ -5,8 +5,7 @@ from subprocess import Popen, PIPE
 from dataclasses import dataclass, field
 
 from selection import Selection
-
-
+import subprocess
 
 PRIMER_FASTA_FILE = "potential_primers.fasta"
 
@@ -16,20 +15,19 @@ class Primer3Interface:
     primer3_path: str 
     result_path: str = field(default="primer3_result")
     primer_sites: pd.DataFrame = field(init=False)
-    specific_file : bool = field(default=False)
+    is_specific_file : bool = field(default=False)
     size_pcr_product : list[int] = field(default_factory=list)
 
 
     def run(self) -> None:
         self.write_settings()
-        self.check_settings_integrity()
         self.run_primer3()
         self.parse_results()
         self.generate_fasta()
 
 
     def write_settings(self) -> None:
-        if self.specific_file == False : 
+        if self.is_specific_file == False : 
             # create a primer3 settings file
             shutil.copyfile("settings.bak", "settings")
             with open("settings", "a") as file:
@@ -44,6 +42,7 @@ class Primer3Interface:
                         f.write(f"PRIMER_PRODUCT_SIZE_RANGE={f"{self.size_pcr_product[0]}-{self.size_pcr_product[1]}"}\n")
                     else:
                         f.write(line)
+            
         else : 
             shutil.copyfile("settings_spec.bak", "settings")
             with open("settings", "a") as file:
@@ -65,14 +64,6 @@ class Primer3Interface:
         if stderr:
             print(stderr.decode("ascii"))
 
-    def check_settings_integrity(self) -> None:
-        cmd = [self.primer3_path, "-check_settings_file", "settings"]
-        process = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = process.communicate()
-
-        if process.returncode != 0:
-            raise ValueError( "Primer3 settings file integrity check failed. Check your primer3 settings file "
-            )
 
     def parse_results(self) -> None:
         # primer3 txt result to pandas dataframe
@@ -110,7 +101,7 @@ class Primer3Interface:
             raise ValueError(
                 "Primer3 did not return any primer pairs. "
                 "This may be due to overly strict design parameters, "
-                "an unsuitable input sequence, or missing primer3 configuration."
+                "an unsuitable input sequence, or wrong primer3 configuration."
             )
         dfdat = []
         for r in re_result:

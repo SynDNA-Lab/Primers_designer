@@ -82,7 +82,8 @@ def cleanup(config:Config) -> None:
         "potential_primers.fasta",
         "primer3_result",
         "settings",
-        "qTagGer_Output.csv"
+        "qTagGer_Output.csv",
+        "primers_plot.png"
     ]
 
     for file in files_to_move:

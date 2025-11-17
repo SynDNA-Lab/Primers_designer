@@ -73,6 +73,8 @@ class BowtieInterface:
         if os.path.exists("bowtie_index/host/host.1.ebwt") :
             self.run_bowtie(index=f"{self.config.bowtie_path}/host/host", fasta_path="potential_primers.fasta", output_path=self.output_host)
             self.result_host = BowtieResult(result_path=self.output_host)
+        else : 
+            self.result_host = BowtieResult(result_path=self.output_host)
         self.result_target = BowtieResult(result_path=self.output_target)
         self.result_genome = BowtieResult(result_path=self.output_genome)
         
